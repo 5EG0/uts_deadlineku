@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Pengingat - DeadlineKu{% endblock %}
+{% block content %}
+
+<div class="page-header animate-in">
+    <h1>🔔 Pengingat</h1>
+    <p>Semua yang perlu kamu perhatikan — hari ini {{ hari_ini }}</p>
+</div>
+
+{% if daftar %}
+    <!-- Group by urgensi -->
+    {% set urgensi_labels = {'merah': '🚨 Mendesak', 'kuning': '⏰ Segera', 'biru': '📅 Jadwal Hari Ini'} %}
+
+    {% for urg in ['merah', 'kuning', 'biru'] %}
+        {% set items = daftar | selectattr('urgensi', 'equalto', urg) | list %}
+        {% if items %}
+        <div class="card animate-in delay-{{ loop.index }}">
+            <div class="card-title">
+                <span class="card-title-icon">
+                    {{ '🚨' if urg == 'merah' else ('⏰' if urg == 'kuning' else '📅') }}
+                </span>
+                {{ urgensi_labels[urg] }} ({{ items|length }})
+            </div>
+
+            {% for p in items %}
+            <div class="urgent-item">
+                <div class="urgent-bar"
+                     style="background: {% if urg == 'merah' %}#ef4444
+                                        {% elif urg == 'kuning' %}#f59e0b
+                                        {% else %}#3b82f6{% endif %};"></div>
+                <div class="urgent-icon">{{ p.emoji }}</div>
+                <div class="urgent-info">
+                    <div class="urgent-title">
+                        {% if p.tipe == 'tugas' %}{{ p.objek.nama }}
+                        {% else %}{{ p.objek.nama }}{% endif %}
+                    </div>
+                    <div class="urgent-meta">
+                        <span>{{ p.info }}</span>
+                        {% if p.tipe == 'tugas' %}
+                        <span>📅 {{ p.objek.deadline.strftime('%d %b %Y') }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="urgent-right">
+                    <span class="badge {{ urg }} {{ 'pulse' if urg == 'merah' }}">
+                        {{ p.pesan }}
+                    </span>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">
+                        {% if p.tipe == 'tugas' %}
+                        <a href="/edit/{{ p.objek.id }}" class="link" style="font-size: 11px;">
+                            Buka →
+                        </a>
+                        {% else %}
+                        <a href="/kegiatan/edit/{{ p.objek.id }}" class="link" style="font-size: 11px;">
+                            Buka →
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endfor %}
+{% else %}
+    <div class="card animate-in">
+        <div class="empty">
+            <div class="empty-icon">✨</div>
+            <h3>Semua Aman!</h3>
+            <p>Tidak ada deadline atau kegiatan yang mendesak saat ini.</p>
+        </div>
+    </div>
+{% endif %}
+
+<!-- INFO REMINDER BROWSER -->
+<div class="card animate-in delay-4">
+    <div class="card-title">
+        <span class="card-title-icon">🔔</span>
+        Notifikasi Browser
+    </div>
+    <p style="font-size: 14px; color: #64748b; margin-bottom: 14px;">
+        Aktifkan notifikasi browser untuk dapat pemberitahuan langsung saat ada tugas yang mendekati deadline.
+    </p>
+    <button onclick="aktifkanNotif()" class="btn-primary" style="max-width: 280px;">
+        🔔 Aktifkan Notifikasi
+    </button>
+    <p id="notif-status" style="font-size: 13px; color: #94a3b8; margin-top: 10px;"></p>
+</div>
+
+{% endblock %}
+
+
+{% block extra_script %}
+<script>
+    // ===== WEB NOTIFICATIONS API =====
+    const JUMLAH_PENGINGAT = {{ daftar|length }};
+    const PESAN_PENGINGAT = "Ada {{ daftar|length }} pengingat aktif. Cek DeadlineKu sekarang!";
+
+    function aktifkanNotif() {
+        const statusEl = document.getElementById('notif-status');
+
+        if (!('Notification' in window)) {
+            statusEl.textContent = '❌ Browser tidak mendukung notifikasi.';
+            statusEl.style.color = '#ef4444';
+            return;
+        }
+
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                statusEl.textContent = '✅ Notifikasi aktif!';
+                statusEl.style.color = '#10b981';
+
+                if (JUMLAH_PENGINGAT > 0) {
+                    new Notification('📚 DeadlineKu', {
+                        body: PESAN_PENGINGAT,
+                        icon: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4da.png'
+                    });
+                }
+            } else {
+                statusEl.textContent = '⚠️ Izin notifikasi ditolak.';
+                statusEl.style.color = '#f59e0b';
+            }
+        });
+    }
+
+    // Auto-check notifikasi jika permission sudah granted
+    if ('Notification' in window && Notification.permission === 'granted' && JUMLAH_PENGINGAT > 0) {
+        // Hanya tampilkan 1x per session
+        if (!sessionStorage.getItem('notif-shown')) {
+            setTimeout(() => {
+                new Notification('📚 DeadlineKu', {
+                    body: PESAN_PENGINGAT,
+                    icon: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4da.png'
+                });
+                sessionStorage.setItem('notif-shown', '1');
+            }, 2000);
+        }
+    }
+</script>
+{% endblock %}

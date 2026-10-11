@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Riwayat - DeadlineKu{% endblock %}
+{% block content %}
+
+<div class="page-header animate-in">
+    <h1>📋 Riwayat Semua Tugas</h1>
+    <p>Arsip lengkap tugas-tugasmu</p>
+</div>
+
+<div class="card animate-in delay-1">
+    {% if daftar %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nama Tugas</th>
+                    <th>Mata Kuliah</th>
+                    <th>Jenis</th>
+                    <th>Bobot</th>
+                    <th>Deadline</th>
+                    <th>Status</th>
+                    <th>Info</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in daftar %}
+                <tr>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:34px; height:34px; border-radius:8px; background:#f1f5f9;
+                                        display:grid; place-items:center; font-size:15px; flex-shrink:0;">
+                                {{ item.tugas.jenis | icon_jenis }}
+                            </div>
+                            <b style="color:#0f172a;">{{ item.tugas.nama }}</b>
+                        </div>
+                    </td>
+                    <td><span class="badge abu">{{ item.tugas.mata_kuliah }}</span></td>
+                    <td style="font-size:13px; color:#64748b;">{{ item.tugas.jenis }}</td>
+                    <td>
+                        {% if item.tugas.bobot %}
+                        <b style="color:#8b5cf6;">{{ item.tugas.bobot }}%</b>
+                        {% else %}
+                        <span style="font-size: 12px; color: #64748b;">
+                            {% if item.tugas.kepentingan == 'Penting' %}🔴
+                            {% elif item.tugas.kepentingan == 'Santai' %}🟢
+                            {% else %}🟠{% endif %}
+                            {{ item.tugas.kepentingan or 'Sedang' }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:13px; color:#64748b;">
+                        {{ item.tugas.deadline.strftime('%d %b %Y') }}
+                    </td>
+                    <td>
+                        <span class="badge
+                            {% if item.tugas.status == 'Selesai' %}hijau
+                            {% elif item.tugas.status == 'Proses' %}biru
+                            {% else %}kuning{% endif %}">
+                            {{ item.tugas.status }}
+                        </span>
+                    </td>
+                    <td style="font-size:12px; color:#94a3b8;">{{ item.countdown }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty">
+        <div class="empty-icon">📭</div>
+        <h3>Belum Ada Tugas</h3>
+        <p>Mulai tambahkan tugas pertamamu dari halaman Tugas!</p>
+    </div>
+    {% endif %}
+</div>
+
+<div style="text-align:center; margin-top:24px;">
+    <a href="/" class="link link-white">← Kembali ke Dashboard</a>
+</div>
+
+{% endblock %}

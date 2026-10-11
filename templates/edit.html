@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Edit Tugas{% endblock %}
+{% block content %}
+
+<div class="page-header animate-in">
+    <h1>✎ Edit Tugas</h1>
+    <p>Ubah detail tugas sesuai kebutuhanmu</p>
+</div>
+
+<div style="max-width:720px; margin:0 auto;">
+    <div class="card animate-in delay-1">
+        <form method="POST">
+            <!-- NAMA TUGAS -->
+            <div class="form-group">
+                <label class="form-label">Nama Tugas</label>
+                <input type="text" name="nama" class="form-input"
+                       value="{{ tugas.nama }}" required>
+            </div>
+
+            <!-- MATA KULIAH + JENIS -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Mata Kuliah</label>
+                    <input type="text" name="mata_kuliah" class="form-input"
+                           value="{{ tugas.mata_kuliah }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Jenis</label>
+                    <select name="jenis" class="form-select" required>
+                        {% for j in jenis_list %}
+                        <option value="{{ j }}" {{ 'selected' if tugas.jenis == j }}>{{ j }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- TINGKAT KEPENTINGAN -->
+            <div class="form-group">
+                <label class="form-label">Tingkat Kepentingan *</label>
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+
+                    <label class="kepentingan-card" style="cursor:pointer; text-align:center;
+                        padding:14px; border:2px solid #e2e8f0; border-radius:12px;
+                        transition:all 0.2s;">
+                        <input type="radio" name="kepentingan" value="Penting"
+                            {{ 'checked' if tugas.kepentingan == 'Penting' }}
+                            style="display:none;" onchange="pilihKepentingan(this)">
+                        <div style="font-size:20px;">🔴</div>
+                        <div style="font-size:12px; font-weight:700; margin-top:4px;">Penting</div>
+                    </label>
+
+                    <label class="kepentingan-card" style="cursor:pointer; text-align:center;
+                        padding:14px; border:2px solid #e2e8f0; border-radius:12px;
+                        transition:all 0.2s;">
+                        <input type="radio" name="kepentingan" value="Sedang"
+                            {{ 'checked' if tugas.kepentingan == 'Sedang' or not tugas.kepentingan }}
+                            style="display:none;" onchange="pilihKepentingan(this)">
+                        <div style="font-size:20px;">🟠</div>
+                        <div style="font-size:12px; font-weight:700; margin-top:4px;">Sedang</div>
+                    </label>
+
+                    <label class="kepentingan-card" style="cursor:pointer; text-align:center;
+                        padding:14px; border:2px solid #e2e8f0; border-radius:12px;
+                        transition:all 0.2s;">
+                        <input type="radio" name="kepentingan" value="Santai"
+                            {{ 'checked' if tugas.kepentingan == 'Santai' }}
+                            style="display:none;" onchange="pilihKepentingan(this)">
+                        <div style="font-size:20px;">🟢</div>
+                        <div style="font-size:12px; font-weight:700; margin-top:4px;">Santai</div>
+                    </label>
+
+                </div>
+            </div>
+
+            <!-- BOBOT + DEADLINE + REMINDER -->
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label class="form-label">
+                        Bobot (%) <span style="color:#94a3b8; font-weight:400;
+                        text-transform:none;">— opsional</span>
+                    </label>
+                    <input type="number" name="bobot" class="form-input"
+                           placeholder="Contoh: 30" min="1" max="100"
+                           value="{{ tugas.bobot if tugas.bobot else '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Deadline *</label>
+                    <input type="date" name="deadline" class="form-input"
+                           value="{{ tugas.deadline.strftime('%Y-%m-%d') }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ingatkan H-berapa hari? *</label>
+                    <select name="reminder_days" class="form-select" required>
+                        <option value="1" {{ 'selected' if tugas.reminder_days == 1 }}>H-1 (1 hari sebelum)</option>
+                        <option value="2" {{ 'selected' if tugas.reminder_days == 2 }}>H-2 (2 hari sebelum)</option>
+                        <option value="3" {{ 'selected' if tugas.reminder_days == 3 or not tugas.reminder_days }}>H-3 (3 hari sebelum)</option>
+                        <option value="5" {{ 'selected' if tugas.reminder_days == 5 }}>H-5 (5 hari sebelum)</option>
+                        <option value="7" {{ 'selected' if tugas.reminder_days == 7 }}>H-7 (1 minggu sebelum)</option>
+                        <option value="14" {{ 'selected' if tugas.reminder_days == 14 }}>H-14 (2 minggu sebelum)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- STATUS -->
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    {% for s in status_list %}
+                    <option value="{{ s }}" {{ 'selected' if tugas.status == s }}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- CATATAN -->
+            <div class="form-group">
+                <label class="form-label">Catatan (opsional)</label>
+                <input type="text" name="catatan" class="form-input"
+                       value="{{ tugas.catatan }}"
+                       placeholder="Contoh: Revisi bab 3">
+            </div>
+
+            <button type="submit" class="btn-primary">
+                💾 Simpan Perubahan
+            </button>
+        </form>
+
+        <div style="text-align:center; margin-top:20px;">
+            <a href="/tugas" class="link">← Kembali ke Daftar Tugas</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_script %}
+<script>
+function pilihKepentingan(el) {
+    document.querySelectorAll('.kepentingan-card').forEach(card => {
+        card.style.borderColor = '#e2e8f0';
+        card.style.background = 'white';
+        card.style.transform = 'scale(1)';
+    });
+    const parent = el.closest('.kepentingan-card');
+    if (parent) {
+        parent.style.borderColor = '#6366f1';
+        parent.style.background = '#eef2ff';
+        parent.style.transform = 'scale(1.03)';
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const checked = document.querySelector('input[name="kepentingan"]:checked');
+    if (checked) pilihKepentingan(checked);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - DeadlineKu{% endblock %}
+{% block content %}
+
+<div class="page-header animate-in">
+    <h1>🏠 Dashboard</h1>
+    <p>Pantau semua deadline kuliahmu di satu tempat</p>
+</div>
+
+<!-- PENGINGAT BANNER -->
+{% if pengingat %}
+<div class="card animate-in delay-1" style="background: linear-gradient(135deg, #1e1b4b, #312e81); color: white; border: none;">
+    <div class="card-title" style="color: white; margin-bottom: 14px;">
+        <span class="card-title-icon" style="background: rgba(255,255,255,0.15);">🔔</span>
+        Pengingat Aktif ({{ pengingat|length }})
+        <a href="/pengingat" class="link" style="color: #a5b4fc; margin-left: auto; font-size: 13px;">Lihat semua →</a>
+    </div>
+
+    {% for p in pengingat[:4] %}
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0;
+                border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <span style="font-size: 22px;">{{ p.emoji }}</span>
+        <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 14px;">
+                {% if p.tipe == 'tugas' %}{{ p.objek.nama }}{% else %}{{ p.objek.nama }}{% endif %}
+            </div>
+            <div style="font-size: 12px; opacity: 0.7;">{{ p.info }}</div>
+        </div>
+        <span style="font-size: 12px; font-weight: 700; padding: 4px 10px;
+                     border-radius: 999px; background: rgba(255,255,255,0.15);">
+            {{ p.pesan }}
+        </span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- JADWAL HARI INI -->
+{% if kegiatan_today %}
+<div class="card animate-in delay-1">
+    <div class="card-title">
+        <span class="card-title-icon">📅</span>
+        Jadwal Hari Ini ({{ hari_ini }})
+        <a href="/kegiatan" class="link" style="margin-left: auto; font-size: 13px;">Lihat jadwal →</a>
+    </div>
+
+    {% for k in kegiatan_today %}
+    <div style="display: flex; align-items: center; gap: 14px; padding: 12px 0;
+                border-bottom: 1px solid #f1f5f9;">
+        <div style="min-width: 70px; font-weight: 800; color: #6366f1; font-size: 14px;">
+            {{ k.jam_mulai }}
+        </div>
+        <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 14px;">{{ k.nama }}</div>
+            <div style="font-size: 12px; color: #64748b;">
+                {{ k.jenis }}{% if k.lokasi %} • 📍 {{ k.lokasi }}{% endif %}
+            </div>
+        </div>
+        <div style="font-size: 12px; color: #94a3b8;">
+            {{ k.jam_mulai }} - {{ k.jam_selesai }}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- WARNING TELAT -->
+{% if stat.telat > 0 %}
+<div class="warning-card animate-in delay-1">
+    <div class="warning-icon">🚨</div>
+    <div class="warning-text">
+        <div class="warning-title">Kamu punya {{ stat.telat }} tugas yang telat!</div>
+        <div class="warning-sub">Segera selesaikan sebelum menumpuk lebih banyak.</div>
+    </div>
+</div>
+{% endif %}
+
+<!-- HERO: DEADLINE TERDEKAT -->
+{% if terdekat %}
+<div class="hero animate-in delay-1">
+    <div class="hero-content">
+        <div class="hero-badge">⏰ Deadline Terdekat</div>
+        <div class="hero-title">{{ terdekat.nama }}</div>
+        <div class="hero-meta">
+            <span>📖 {{ terdekat.mata_kuliah }}</span>
+            <span>🏷️ {{ terdekat.jenis }}</span>
+            
+            {% if terdekat.bobot %}
+            <span>⚖️ Bobot {{ terdekat.bobot }}%</span>
+            {% else %}
+            <span>
+                {% if terdekat.kepentingan == 'Penting' %}🔴
+                {% elif terdekat.kepentingan == 'Santai' %}🟢
+                {% else %}🟠{% endif %}
+                {{ terdekat.kepentingan or 'Sedang' }}
+            </span>
+            {% endif %}
+
+            <span>📅 {{ terdekat.deadline.strftime('%d %B %Y') }}</span>
+        </div>
+        <div class="hero-countdown">
+            <div>
+                <div class="countdown-label">Countdown</div>
+                <div class="countdown-value">{{ countdown_terdekat }}</div>
+            </div>
+            <a href="/tugas" class="link">Lihat semua tugas →</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- STAT CARDS -->
+<div class="grid grid-5 animate-in delay-2">
+    <div class="stat-card">
+        <div class="accent ungu"></div>
+        <div class="stat-icon ungu">📊</div>
+        <div class="stat-label">Total</div>
+        <div class="stat-value ungu">{{ stat.total }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="accent kuning"></div>
+        <div class="stat-icon kuning">⏳</div>
+        <div class="stat-label">Belum</div>
+        <div class="stat-value kuning">{{ stat.belum }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="accent biru"></div>
+        <div class="stat-icon biru">✏️</div>
+        <div class="stat-label">Proses</div>
+        <div class="stat-value biru">{{ stat.proses }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="accent hijau"></div>
+        <div class="stat-icon hijau">✅</div>
+        <div class="stat-label">Selesai</div>
+        <div class="stat-value hijau">{{ stat.selesai }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="accent merah"></div>
+        <div class="stat-icon merah">🚨</div>
+        <div class="stat-label">Telat</div>
+        <div class="stat-value merah">{{ stat.telat }}</div>
+    </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-card animate-in delay-3">
+    <div class="progress-header">
+        <div>
+            <div class="progress-label">Progress Semester</div>
+            <div class="progress-value">{{ stat.persen }}%</div>
+        </div>
+        <div style="text-align:right;">
+            <div class="progress-label">Selesai</div>
+            <div style="font-size:20px; font-weight:700;">
+                {{ stat.selesai }}/{{ stat.total }}
+            </div>
+        </div>
+    </div>
+    <div class="progress-track">
+        <div class="progress-fill" style="width: {{ stat.persen }}%;"></div>
+    </div>
+    <div class="progress-stats">
+        <div class="progress-stat-item">
+            <b>{{ stat.kritis }}</b> tugas kritis
+        </div>
+        <div class="progress-stat-item">
+            <b>{{ stat.belum }}</b> belum dikerjakan
+        </div>
+    </div>
+</div>
+
+<!-- MAIN GRID -->
+<div class="grid grid-main animate-in delay-4">
+
+    <!-- URGENT LIST -->
+    <div class="card" style="margin-bottom:0;">
+        <div class="card-title">
+            <span class="card-title-icon">🔥</span>
+            5 Tugas Paling Urgent
+        </div>
+
+        {% if daftar_urgent %}
+            {% for item in daftar_urgent %}
+            <div class="urgent-item">
+                <div class="urgent-bar" style="background: {{ item.kategori.hex }};"></div>
+                <div class="urgent-icon">
+                    {{ item.tugas.jenis | icon_jenis }}
+                </div>
+                <div class="urgent-info">
+                    <div class="urgent-title">{{ item.tugas.nama }}</div>
+                    <div class="urgent-meta">
+                        <span>📖 {{ item.tugas.mata_kuliah }}</span>
+
+                        {% if item.tugas.bobot %}
+                        <span>⚖️ {{ item.tugas.bobot }}%</span>
+                        {% else %}
+                        <span>
+                            {% if item.tugas.kepentingan == 'Penting' %}🔴
+                            {% elif item.tugas.kepentingan == 'Santai' %}🟢
+                            {% else %}🟠{% endif %}
+                            {{ item.tugas.kepentingan or 'Sedang' }}
+                        </span>
+                        {% endif %}
+
+                        <span>📅 {{ item.tugas.deadline.strftime('%d %b') }}</span>
+                    </div>
+                </div>
+                <div class="urgent-right">
+                    <span class="badge {{ item.kategori.warna }} {{ 'pulse' if item.kategori.warna == 'merah' }}">
+                        {{ item.kategori.emoji }} {{ item.kategori.label }}
+                    </span>
+                    <div class="urgent-countdown">{{ item.countdown }}</div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div style="margin-top:16px; text-align:center;">
+                <a href="/tugas" class="link">Lihat semua tugas →</a>
+            </div>
+        {% else %}
+            <div class="empty" style="padding:40px 20px;">
+                <div class="empty-icon">✨</div>
+                <h3>Tidak Ada Tugas Aktif</h3>
+                <p>Selamat! Semua tugas sudah selesai.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- CHART DISTRIBUSI -->
+    <div class="card" style="margin-bottom:0;">
+        <div class="card-title">
+            <span class="card-title-icon">📊</span>
+            Distribusi Prioritas
+        </div>
+
+        {% if stat.total > 0 and (chart_data | sum) > 0 %}
+        <div style="position:relative; height:280px;">
+            <canvas id="chartPrioritas"></canvas>
+        </div>
+        {% else %}
+        <div class="empty" style="padding:40px 20px;">
+            <div class="empty-icon">📊</div>
+            <p>Belum ada tugas aktif</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- REKAP PER MATKUL -->
+{% if rekap %}
+<div class="card animate-in delay-5">
+    <div class="card-title">
+        <span class="card-title-icon">📚</span>
+        Rekap per Mata Kuliah
+    </div>
+
+    {% set max_bobot = rekap[0].bobot %}
+    {% for r in rekap %}
+    {% set bobot_persen = (r.bobot / max_bobot * 100) if max_bobot else 0 %}
+    <div class="matkul-item">
+        <div class="matkul-avatar">{{ r.matkul[:2] | upper }}</div>
+        <div class="matkul-info">
+            <div class="matkul-name">{{ r.matkul }}</div>
+            <div class="matkul-bar">
+                <div class="matkul-bar-fill" style="width: {{ bobot_persen | round }}%;"></div>
+            </div>
+            <div class="matkul-stats">
+                {{ r.selesai }}/{{ r.jumlah }} tugas selesai • Total bobot {{ r.bobot }}%
+            </div>
+        </div>
+        <div class="matkul-bobot">{{ r.bobot }}%</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+
+{% block extra_script %}
+<script>
+    {% if stat.total > 0 and (chart_data | sum) > 0 %}
+    const ctx = document.getElementById('chartPrioritas');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ chart_labels | tojson }},
+            datasets: [{
+                data: {{ chart_data | tojson }},
+                backgroundColor: {{ chart_colors | tojson }},
+                borderWidth: 3,
+                borderColor: '#ffffff',
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { family: 'Inter', size: 12, weight: '600' },
+                        padding: 14,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        boxWidth: 8,
+                        color: '#64748b'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    padding: 12,
+                    titleFont: { family: 'Inter', size: 13, weight: '700' },
+                    bodyFont: { family: 'Inter', size: 13 },
+                    cornerRadius: 10,
+                    callbacks: {
+                        label: function(ctx) {
+                            return ' ' + ctx.parsed + ' tugas';
+                        }
+                    }
+                }
+            },
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 1000,
+                easing: 'easeOutCubic'
+            }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

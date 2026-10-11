@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+{% block title %}Daftar Tugas - DeadlineKu{% endblock %}
+{% block content %}
+
+<div class="page-header animate-in">
+    <h1>📝 Daftar Tugas</h1>
+    <p>Kelola semua tugas kuliahmu di sini</p>
+</div>
+
+<!-- STAT MINI -->
+<div class="grid grid-5 animate-in delay-1">
+    <div class="stat-card">
+        <div class="accent ungu"></div>
+        <div class="stat-label">Total</div>
+        <div class="stat-value ungu">{{ stat.total }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="accent kuning"></div>
+        <div class="stat-label">Belum</div>
+        <div class="stat-value kuning">{{ stat.belum }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="accent biru"></div>
+        <div class="stat-label">Proses</div>
+        <div class="stat-value biru">{{ stat.proses }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="accent hijau"></div>
+        <div class="stat-label">Selesai</div>
+        <div class="stat-value hijau">{{ stat.selesai }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="accent merah"></div>
+        <div class="stat-label">Telat</div>
+        <div class="stat-value merah">{{ stat.telat }}</div>
+    </div>
+</div>
+
+<!-- FORM TAMBAH -->
+<div class="card animate-in delay-2">
+    <div class="card-title">
+        <span class="card-title-icon">➕</span>
+        Tambah Tugas Baru
+    </div>
+
+    <form method="POST" action="/tambah">
+        <!-- NAMA TUGAS -->
+        <div class="form-group">
+            <label class="form-label">Nama Tugas</label>
+            <input type="text" name="nama" class="form-input"
+                   placeholder="Contoh: Makalah Algoritma Sorting" required>
+        </div>
+
+        <!-- MATA KULIAH + JENIS -->
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Mata Kuliah</label>
+                <input type="text" name="mata_kuliah" class="form-input"
+                       placeholder="Contoh: Struktur Data" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Jenis</label>
+                <select name="jenis" class="form-select" required>
+                    <option value="">Pilih jenis...</option>
+                    {% for j in jenis_list %}
+                    <option value="{{ j }}">{{ j }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- TINGKAT KEPENTINGAN -->
+        <div class="form-group">
+            <label class="form-label">Tingkat Kepentingan *</label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <label class="kepentingan-card" style="cursor:pointer; text-align:center;
+                    padding:14px; border:2px solid #e2e8f0; border-radius:12px;
+                    transition:all 0.2s;">
+                    <input type="radio" name="kepentingan" value="Penting" checked
+                        style="display:none;" onchange="pilihKepentingan(this)">
+                    <div style="font-size:20px;">🔴</div>
+                    <div style="font-size:12px; font-weight:700; margin-top:4px;">Penting</div>
+                </label>
+
+                <label class="kepentingan-card" style="cursor:pointer; text-align:center;
+                    padding:14px; border:2px solid #e2e8f0; border-radius:12px;
+                    transition:all 0.2s;">
+                    <input type="radio" name="kepentingan" value="Sedang"
+                        style="display:none;" onchange="pilihKepentingan(this)">
+                    <div style="font-size:20px;">🟠</div>
+                    <div style="font-size:12px; font-weight:700; margin-top:4px;">Sedang</div>
+                </label>
+
+                <label class="kepentingan-card" style="cursor:pointer; text-align:center;
+                    padding:14px; border:2px solid #e2e8f0; border-radius:12px;
+                    transition:all 0.2s;">
+                    <input type="radio" name="kepentingan" value="Santai"
+                        style="display:none;" onchange="pilihKepentingan(this)">
+                    <div style="font-size:20px;">🟢</div>
+                    <div style="font-size:12px; font-weight:700; margin-top:4px;">Santai</div>
+                </label>
+            </div>
+        </div>
+
+        <!-- BOBOT + DEADLINE + REMINDER -->
+        <div class="form-row-3">
+            <div class="form-group">
+                <label class="form-label">
+                    Bobot (%) <span style="color:#94a3b8; font-weight:400;
+                    text-transform:none;">— opsional</span>
+                </label>
+                <input type="number" name="bobot" class="form-input"
+                       placeholder="Contoh: 30" min="1" max="100">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Deadline *</label>
+                <input type="date" name="deadline" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ingatkan H-berapa hari? *</label>
+                <select name="reminder_days" class="form-select" required>
+                    <option value="1">H-1 (1 hari sebelum)</option>
+                    <option value="2">H-2 (2 hari sebelum)</option>
+                    <option value="3" selected>H-3 (3 hari sebelum)</option>
+                    <option value="5">H-5 (5 hari sebelum)</option>
+                    <option value="7">H-7 (1 minggu sebelum)</option>
+                    <option value="14">H-14 (2 minggu sebelum)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- STATUS -->
+        <div class="form-group">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+                {% for s in status_list %}
+                <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- CATATAN -->
+        <div class="form-group">
+            <label class="form-label">Catatan (opsional)</label>
+            <input type="text" name="catatan" class="form-input"
+                   placeholder="Contoh: Revisi bab 3">
+        </div>
+
+        <button type="submit" class="btn-primary">
+            💾 Tambah Tugas
+        </button>
+    </form>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar animate-in delay-3">
+    <div class="filter-pills">
+        <a href="/tugas?status=semua&urut={{ urut }}"
+           class="{{ 'active' if filter_status == 'semua' }}">Semua</a>
+        <a href="/tugas?status=Belum&urut={{ urut }}"
+           class="{{ 'active' if filter_status == 'Belum' }}">Belum</a>
+        <a href="/tugas?status=Proses&urut={{ urut }}"
+           class="{{ 'active' if filter_status == 'Proses' }}">Proses</a>
+        <a href="/tugas?status=Selesai&urut={{ urut }}"
+           class="{{ 'active' if filter_status == 'Selesai' }}">Selesai</a>
+    </div>
+
+    <form method="GET" class="filter-selects">
+        <input type="hidden" name="status" value="{{ filter_status }}">
+        <select name="matkul" onchange="this.form.submit()">
+            <option value="semua">Semua Matkul</option>
+            {% for mk in matkul_unik %}
+            <option value="{{ mk }}" {{ 'selected' if filter_matkul == mk }}>{{ mk }}</option>
+            {% endfor %}
+        </select>
+        <select name="urut" onchange="this.form.submit()">
+            <option value="prioritas" {{ 'selected' if urut == 'prioritas' }}>🔥 Prioritas</option>
+            <option value="deadline" {{ 'selected' if urut == 'deadline' }}>📅 Deadline</option>
+            <option value="bobot" {{ 'selected' if urut == 'bobot' }}>⚖️ Bobot</option>
+        </select>
+    </form>
+</div>
+
+<!-- DAFTAR TUGAS -->
+{% if daftar %}
+    {% for item in daftar %}
+    <div class="tugas-card p-{{ item.kategori.warna }} animate-in {{ 'selesai' if item.tugas.status == 'Selesai' }}">
+        <div class="tugas-header">
+            <div style="flex:1; min-width:0;">
+                <div class="tugas-title">{{ item.tugas.nama }}</div>
+
+                <div class="tugas-meta">
+                    <span class="tugas-meta-item">📖 {{ item.tugas.mata_kuliah }}</span>
+                    <span class="tugas-meta-item">🏷️ {{ item.tugas.jenis }}</span>
+
+                    {% if item.tugas.bobot %}
+                    <span class="tugas-meta-item">⚖️ Bobot {{ item.tugas.bobot }}%</span>
+                    {% else %}
+                    <span class="tugas-meta-item">
+                        {% if item.tugas.kepentingan == 'Penting' %}🔴
+                        {% elif item.tugas.kepentingan == 'Santai' %}🟢
+                        {% else %}🟠{% endif %}
+                        {{ item.tugas.kepentingan or 'Sedang' }}
+                    </span>
+                    {% endif %}
+
+                    <span class="tugas-meta-item">📅 {{ item.tugas.deadline.strftime('%d %b %Y') }}</span>
+                </div>
+
+                {% if item.tugas.catatan %}
+                <div class="tugas-catatan">"{{ item.tugas.catatan }}"</div>
+                {% endif %}
+
+                <div class="tugas-badges">
+                    <span class="badge {{ item.kategori.warna }} {{ 'pulse' if item.kategori.warna == 'merah' }}">
+                        {{ item.kategori.emoji }} {{ item.kategori.label }}
+                    </span>
+                    <span class="badge abu">Skor {{ item.skor }}</span>
+                    <span class="badge
+                        {% if item.tugas.status == 'Selesai' %}hijau
+                        {% elif item.tugas.status == 'Proses' %}biru
+                        {% else %}kuning{% endif %}">
+                        {{ item.tugas.status }}
+                    </span>
+                    <span class="badge abu">⏱ {{ item.countdown }}</span>
+                </div>
+            </div>
+
+            <div class="tugas-actions">
+                <a href="/toggle/{{ item.tugas.id }}" class="btn-icon toggle"
+                   title="Ganti status">
+                    {% if item.tugas.status == 'Belum' %}▶
+                    {% elif item.tugas.status == 'Proses' %}✓
+                    {% else %}↺{% endif %}
+                </a>
+                <a href="/edit/{{ item.tugas.id }}" class="btn-icon edit" title="Edit">✎</a>
+                <a href="/hapus/{{ item.tugas.id }}" class="btn-icon delete" title="Hapus"
+                   onclick="return confirm('Yakin hapus tugas ini?')">✕</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <div class="empty">
+            <div class="empty-icon">📭</div>
+            <h3>Tidak Ada Tugas</h3>
+            <p>Tambahkan tugas pertamamu di form atas!</p>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}
+
+
+{% block extra_script %}
+<script>
+function pilihKepentingan(el) {
+    // Reset semua kartu
+    document.querySelectorAll('.kepentingan-card').forEach(card => {
+        card.style.borderColor = '#e2e8f0';
+        card.style.background = 'white';
+        card.style.transform = 'scale(1)';
+    });
+
+    // Highlight yang dipilih
+    const parent = el.closest('.kepentingan-card');
+    if (parent) {
+        parent.style.borderColor = '#6366f1';
+        parent.style.background = '#eef2ff';
+        parent.style.transform = 'scale(1.03)';
+    }
+}
+
+// Set default highlight saat halaman dibuka
+document.addEventListener('DOMContentLoaded', function() {
+    const checked = document.querySelector('input[name="kepentingan"]:checked');
+    if (checked) pilihKepentingan(checked);
+});
+</script>
+{% endblock %}
