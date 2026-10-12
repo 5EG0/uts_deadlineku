@@ -20,11 +20,13 @@ elif database_url and database_url.startswith("postgresql://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
-
-db = SQLAlchemy(app, engine_options={
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'connect_args': {
         'check_same_thread': False
-    },
+    }
+}
+
+db = SQLAlchemy(app, engine_options={
     "pool_pre_ping": True,
     "pool_recycle": 300,   # opsional: recycle koneksi setiap 5 menit
     "pool_size": 5,        # opsional: batasi jumlah koneksi
