@@ -8,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 # Muat variabel dari file .env
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, instance_path ='/tmp')
 
 # ===== DATABASE =====
 database_url = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
@@ -22,6 +22,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
 
 db = SQLAlchemy(app, engine_options={
+    'connect_args': {
+        'check_same_thread': False
+    },
     "pool_pre_ping": True,
     "pool_recycle": 300,   # opsional: recycle koneksi setiap 5 menit
     "pool_size": 5,        # opsional: batasi jumlah koneksi
