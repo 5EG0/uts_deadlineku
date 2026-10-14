@@ -1,4 +1,5 @@
 import os
+import tempfile
 from datetime import date, datetime
 
 from dotenv import load_dotenv
@@ -8,8 +9,8 @@ from flask_sqlalchemy import SQLAlchemy
 # Muat variabel dari file .env
 load_dotenv()
 
-# instance_path='/tmp' WAJIB untuk Vercel
-app = Flask(__name__, instance_path='/tmp')
+instance_path = tempfile.gettempdir()
+app = Flask(__name__, instance_path=instance_path)
 
 # ===== DATABASE =====
 database_url = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
